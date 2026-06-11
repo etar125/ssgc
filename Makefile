@@ -29,9 +29,6 @@ uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/ssgc
 
 fasttest: ssgc
-	rm -rf foo.org.out
-	cp -r foo.org foo.org.out
-	rm -f foo.org.out/ssg.lock
-	memcheck "./ssgc foo.org.out"
+	memcheck "./ssgc foo.org foo.org.out"
 
 .PHONY: all clean cleanobj install uninstall fasttest

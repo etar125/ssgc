@@ -8,20 +8,23 @@ THE SOFTWARE IS PROVIDED “AS IS” AND THE AUTHOR DISCLAIMS ALL WARRANTIES WIT
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <e1l.h>
 #include <elist.h>
 #define ESTRNDUPL
 #include "estrdup.h"
 #include "ssgc.h"
 
+#define _P "(main)"
+
 #define _e goto error
-#define __e(x) perror(x); goto error
-#define __f(x) fprintf(stderr, x); goto error
-#define _f(x) fprintf(stderr, x)
+#define __e(x) perror(_P" "x); goto error
+#define __f(x) fprintf(stderr, _P" "x); goto error
+#define _f(x) fprintf(stderr, _P" "x)
 
 int usage(char *progname) {
     printf("ssgc v"VERSION"\n"
-           "Usage: %s /path/to/src\n",
+           "Usage: %s /path/to/src [/path/to/dst]\n",
            progname);
     return 0;
 }
@@ -29,9 +32,9 @@ int usage(char *progname) {
 int main(int argc, char **argv) {
     ssg_cfg c;
     char *path = NULL, *buf = NULL, *src = NULL,
-         *t = NULL;
+        *t = NULL, *dst = NULL, *copycmd = NULL, *cpath = NULL, *tpath = NULL;
     FILE *f = NULL;
-    size_t fz, sl = 0, pl, i, j, k, tl, crpll = 0, crpli = 0;
+    size_t fz, sl = 0, dl = 0, pl, i, j, k, tl, crpll = 0, crpli = 0, copycmdlen = 0;
     elist el;
     elist_obj eo;
     elist_pair ep;
@@ -47,9 +50,21 @@ int main(int argc, char **argv) {
     crp.old = NULL;
     el.objs = NULL;
 
-    if (argc < 2) { return usage(argv[0]); }
+    if (argc < 2 || argc > 3) { return usage(argv[0]); }
     src = argv[1];
     sl = strlen(src);
+    if (argc == 3) {
+        dst = argv[2];
+        dl = strlen(dst);
+    } else {
+        path = join(src, sl, "ssgc.lock", 9,
+                    (sl == 0 || src[sl - 1] == '/' ? NULL : "/"), 1,
+                    &pl);
+        if (!path) { __e("join"); }
+        if (access(path, F_OK) == 0) { __f("ssgc.lock exists, aborting\n"); }
+        free(path);
+        path = NULL;
+    }
 
     path = join(src, sl, "ssgc.elist", 10,
                 (sl == 0 || src[sl - 1] == '/' ? NULL : "/"), 1,
@@ -58,7 +73,7 @@ int main(int argc, char **argv) {
 
     f = fopen(path, "r");
     if (!f) {
-        fprintf(stderr, "unable to open cfg '%s'\n", path);
+        fprintf(stderr, _P" unable to open cfg '%s'\n", path);
         __e("fopen");
     }
     fseek(f, 0, SEEK_END);
@@ -72,8 +87,7 @@ int main(int argc, char **argv) {
     f = NULL;
     buf[fz] = '\0';
 
-    if (remove(path) != 0) { __e("remove"); }
-    free(path);
+    cpath = path;
     path = NULL;
     
     el = elist_read(buf, fz);
@@ -90,7 +104,7 @@ int main(int argc, char **argv) {
                 #define pcmp(x) strcmp(ep.key, x) == 0
                 if (pcmp("sitename")) {
                     if (ep.values.count > 1) {
-                        _f("sitename requires only one value, first will be taken");
+                        _f("sitename requires only one value, first will be taken\n");
                         t = sarr_getstr(&ep.values, 0, &tl);
                         c.sitename = estrndupl(t, tl, NULL);
                         if (!c.sitename) { __e("estrndupl"); }
@@ -100,7 +114,7 @@ int main(int argc, char **argv) {
                     }
                 } else if (pcmp("mdhandler")) {
                     if (ep.values.count > 1) {
-                        _f("mdhandler requires only one value, first will be taken");
+                        _f("mdhandler requires only one value, first will be taken\n");
                         t = sarr_getstr(&ep.values, 0, &tl);
                         c.mdhandler = estrndupl(t, tl, &c.mdhandlerlen);
                         if (!c.mdhandler) { __e("estrndupl"); }
@@ -111,7 +125,7 @@ int main(int argc, char **argv) {
                     }
                 } else if (pcmp("old")) {
                     if (ep.values.count > 1) {
-                        _f("old requires only one value, first will be taken");
+                        _f("old requires only one value, first will be taken\n");
                         t = sarr_getstr(&ep.values, 0, &tl);
                         crp.old = estrndupl(t, tl, &crp.oldlen);
                         if (!crp.old) { __e("estrndupl"); }
@@ -133,7 +147,7 @@ int main(int argc, char **argv) {
                     }
                 } else if (pcmp("new")) {
                     if (ep.values.count > 1) {
-                        _f("new requires only one value, first will be taken");
+                        _f("new requires only one value, first will be taken\n");
                         t = sarr_getstr(&ep.values, 0, &tl);
                         crp.new = estrndupl(t, tl, NULL);
                         if (!crp.new) { __e("estrndupl"); }
@@ -164,7 +178,7 @@ int main(int argc, char **argv) {
                     c.ignore[k] = NULL;
                 } else if (pcmp("template")) {
                     if (ep.values.count > 1) {
-                        _f("template requires only one value, first will be taken");
+                        _f("template requires only one value, first will be taken\n");
                         t = sarr_getstr(&ep.values, 0, NULL);
                     } else { t = ep.values.strs; }
 
@@ -186,22 +200,32 @@ int main(int argc, char **argv) {
                     f = NULL;
                     buf[fz] = '\0';
 
-                    if (remove(path) != 0) { __e("remove"); }
+                    /* if (remove(path) != 0) { __e("remove"); } */
+                    tpath = path;
 
                     c.template = buf;
                     c.templatelen = fz;
                     buf = NULL;
 
-                    free(path);
-                    path = NULL;
                     free(ep.values.strs);
+                } else if (pcmp("copycmd")) {
+                    if (ep.values.count > 1) {
+                        _f("copycmd requires only one value, first will be taken\n");
+                        t = sarr_getstr(&ep.values, 0, &tl);
+                        copycmd = estrndupl(t, tl, &copycmdlen);
+                        if (!copycmd) { __e("estrndupl"); }
+                        free(ep.values.strs);
+                    } else {
+                        copycmd = ep.values.strs;
+                        copycmdlen = ep.values.size;
+                    }
                 }
                 free(ep.values.offsets);
                 free(ep.key);
                 eo.pairs[j].values.offsets = NULL;
                 eo.pairs[j].values.strs = NULL;
                 eo.pairs[j].key = NULL;
-            }
+            } 
         }
         free(eo.pairs);
         el.objs[i].pairs = NULL;
@@ -211,6 +235,25 @@ int main(int argc, char **argv) {
 
     c.replaces = crpl;
     c.replaceslen = crpll;
+
+    if (dst) {
+        if (!copycmd) { __f("copying dir not implemented yet\nplease, add copycmd entry\n"); }
+        path = join(copycmd, copycmdlen, src, sl, " ", 1, &pl);
+        if (!path) { __f("join\n"); }
+        t = NULL;
+        t = join(path, pl, dst, dl, " ", 1, NULL);
+        if (!t) { __f("join\n"); }
+        
+        if (system(t) != 0) { __f("copy command failed\n"); }
+        free(t);
+        t = NULL;
+
+        src = dst;
+    } else {
+        if (copycmd) { _f("copy command present but no destination, ignoring\n"); }
+        if (remove(cpath) != 0) { __e("remove"); }
+        if (remove(tpath) != 0) { __e("remove"); }
+    }
 
     ret = ssg_main(&c, src);
 error:
@@ -224,6 +267,7 @@ error:
         }
         free(c.ignore);
     }
+    if (copycmd) { free(copycmd); }
     if (path) { free(path); }
     if (f) { fclose(f); }
     if (buf) { free(buf); }
@@ -247,9 +291,12 @@ error:
             if (crpl[i].old) { free(crpl[i].old); }
             if (crpl[i].new) { free(crpl[i].new); }
         }
+        free(crpl);
     }
     if (crp.new) { free(crp.new); }
     if (crp.old) { free(crp.old); }
+    if (cpath) { free(cpath); }
+    if (tpath) { free(tpath); }
 
     return ret;
 }

@@ -349,11 +349,17 @@ int ssg_main(ssg_cfg *cfg, const char *dir) {
     if (!cfg->sitename) { __f("sitename not set\n"); }
     if (!cfg->mdhandler) { __f("mdhandler not set\n"); }
     if (!cfg->template) { __f("template not set\n"); }
+    if (!dir) { __f("dir is null\n"); }
+
+    dirlen = strlen(dir);
+
+    path = join(dir, dirlen, "ssgc.lock", 9, dirlen > 0 && dir[dirlen - 1] == '/' ? NULL : "/", 1, &pl);
+    if (!path) { __e("join"); }
+    if (access(path, F_OK) == 0) { __f("ssgc.lock exists, aborting\n"); }
+    free(path);
+    path = NULL;
 
     breplaces[3].new = cfg->sitename;
-
-    if (!dir) { return 1; }
-    dirlen = strlen(dir);
     rootdir = dir;
     rootlen = dirlen;
 
@@ -362,17 +368,17 @@ int ssg_main(ssg_cfg *cfg, const char *dir) {
     sdl[0].vname = NULL;
     sdl[0].name = NULL;
     sdl[0].name = estrdupl(dir, &sdl[0].namelen);
-    if (!sdl[0].name) { __f("estrdupl"); }
+    if (!sdl[0].name) { __e("estrdupl"); }
     sdl[0].vname = estrdupl("/", NULL);
     sdl[0].vnamelen = 1;
-    if (!sdl[0].vname) { __f("estrdupl"); }
+    if (!sdl[0].vname) { __e("estrdupl"); }
     sdl[0].parent = sdl[0].vname;
     sdl[0].parentlen = sdl[0].vnamelen;
     cd += 1;
 
     for (i = 0; i < cd; i++) {
         cur = sdl[i].name, cl = sdl[i].namelen;
-        if (!cur) { __f("sdir.name is null"); }
+        if (!cur) { __f("sdir.name is null\n"); }
         if (cl == 0 || inignore(cfg, NULL, 0, cur, cl)) { continue; }
 
         d = opendir(cur);
@@ -382,9 +388,9 @@ int ssg_main(ssg_cfg *cfg, const char *dir) {
             if (e->d_name[0] == '.') { continue; }
             dl = strlen(e->d_name);
             path = join(cur, cl, e->d_name, dl, cur[cl - 1] == '/' ? NULL : "/", 1, &pl);
-            if (!path) { __f("join"); }
+            if (!path) { __e("join"); }
             if (stat(path, &st) == 0 && S_ISDIR(st.st_mode)) {
-                if (cd == 0) { free(path); __f("impossible error"); /* ??? */ }
+                if (cd == 0) { free(path); __f("impossible error\n"); /* ??? */ }
                 if (cd == asz) {
                     asz += asz / 2;
                     nsdl = realloc(sdl, sizeof(sdir) * asz);
@@ -400,7 +406,7 @@ int ssg_main(ssg_cfg *cfg, const char *dir) {
                                   &sdl[cd].vnamelen);
                 sdl[cd].parent = sdl[od].vname;
                 sdl[cd].parentlen = sdl[od].vnamelen;
-                if (!sdl[cd].vname) { __f("join"); }
+                if (!sdl[cd].vname) { __e("join"); }
                 cd += 1;
             } else { free(path); path = NULL; }
         }
@@ -411,9 +417,9 @@ int ssg_main(ssg_cfg *cfg, const char *dir) {
         breplaces[1].new = sdl[i].parent;
         breplaces[4].new = sdl[i].vname;
 
-        if (convert(cfg, cur, cl)) { __f("convert failed"); }
-        if (process(cfg, cur, cl)) { __f("process failed"); }
-        if (postprocess(cfg, cur, cl)) { __f("postprocess failed"); }
+        if (convert(cfg, cur, cl)) { __f("convert failed\n"); }
+        if (process(cfg, cur, cl)) { __f("process failed\n"); }
+        if (postprocess(cfg, cur, cl)) { __f("postprocess failed\n"); }
     }
 
     ret = 0;
