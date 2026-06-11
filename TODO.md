@@ -1,5 +1,6 @@
-- [ ] Добавить в main.c проверку на наличие ssg.lock в папке.
-- [ ] Добавить поддержку других форматов, помимо Markdown
-- [ ] Добавить поддержку скриптов, выполняющихся до и после convert, process,
-заменяющих convert, process, postprocess.
-- [ ] Написать генератор индекса (Index of ...)
+- [ ] Add check in main.c for `ssg.lock` in root directory.
+- [ ] Add support for other formats than Markdown.
+- [ ] Add support for scripts that run before/after convert, process,
+and that replace convert, process, postprocess.
+- [ ] Write index generator ("Index of ...").
+- [ ] Add `copycmd` entry in config.

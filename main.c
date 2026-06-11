@@ -45,6 +45,7 @@ int main(int argc, char **argv) {
     c.ignore = NULL;
     crp.new = NULL;
     crp.old = NULL;
+    el.objs = NULL;
 
     if (argc < 2) { return usage(argv[0]); }
     src = argv[1];
@@ -56,7 +57,10 @@ int main(int argc, char **argv) {
     if (!path) { __e("join"); }
 
     f = fopen(path, "r");
-    if (!f) { __e("fopen"); }
+    if (!f) {
+        fprintf(stderr, "unable to open cfg '%s'\n", path);
+        __e("fopen");
+    }
     fseek(f, 0, SEEK_END);
     fz = ftell(f);
     rewind(f);
