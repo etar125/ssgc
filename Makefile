@@ -15,8 +15,10 @@ ssgc: $(OBJ)
 	$(CC) $(ECFLAGS) $^ -o $@
 
 clean:
-	rm -rf ssgc
-	rm -rf $(OBJ)
+	rm -rf ssgc $(OBJ)
+
+cleanobj:
+	rm -rf (OBJ)
 
 install: ssgc
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
@@ -26,4 +28,10 @@ install: ssgc
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/ssgc
 
-.PHONY: all clean install uninstall
+fasttest: ssgc
+	rm -rf foo.org.out
+	cp -r foo.org foo.org.out
+	rm -f foo.org.out/ssg.lock
+	memcheck "./ssgc foo.org.out"
+
+.PHONY: all clean cleanobj install uninstall fasttest

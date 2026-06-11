@@ -48,7 +48,7 @@ static ssg_rp breplaces[] = {
     { "\\{", "{", 2 },
     { "{{up}}", "", 6 },
     { "{{home}}", "/", 8 },
-    { "{{title}}", NULL, 9 },
+    { "{{sitename}}", NULL, 12 },
     { "{{dirname}}", "", 11 },
     { "{{content}}", "", 11 },
 };
@@ -119,13 +119,15 @@ static char *ssub(ssg_cfg *cfg, const char *s, size_t l, size_t *outlen) {
                 }
             }
         }
-        for (j = 0; j < cfg->replaceslen && !affected; j++) {
-            if (strncmp(&s[i], cfg->replaces[j].old, cfg->replaces[j].oldlen) == 0) {
-                affected = cfg->replaces[j].oldlen;
-                if (d_append(&ds, &asize, &bsize, cfg->replaces[j].new,
-                    strlen(cfg->replaces[j].new)) != 0) {
-                    if (ds) { free(ds); }
-                    return NULL;
+        if (cfg->replaces) {
+            for (j = 0; j < cfg->replaceslen && !affected; j++) {
+                if (strncmp(&s[i], cfg->replaces[j].old, cfg->replaces[j].oldlen) == 0) {
+                    affected = cfg->replaces[j].oldlen;
+                    if (d_append(&ds, &asize, &bsize, cfg->replaces[j].new,
+                                 strlen(cfg->replaces[j].new)) != 0) {
+                        if (ds) { free(ds); }
+                        return NULL;
+                    }
                 }
             }
         }
@@ -342,6 +344,11 @@ int ssg_main(ssg_cfg *cfg, const char *dir) {
 
     sdir *sdl = NULL, *nsdl = NULL;
     size_t cd = 0, asz = 8, od = 0;
+
+    if (!cfg) { __f("config is null\n"); }
+    if (!cfg->sitename) { __f("sitename not set\n"); }
+    if (!cfg->mdhandler) { __f("mdhandler not set\n"); }
+    if (!cfg->template) { __f("template not set\n"); }
 
     breplaces[3].new = cfg->sitename;
 

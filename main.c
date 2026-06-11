@@ -71,6 +71,10 @@ int main(int argc, char **argv) {
     fclose(f);
     f = NULL;
     buf[fz] = '\0';
+
+    if (remove(path) != 0) { __e("remove"); }
+    free(path);
+    path = NULL;
     
     el = elist_read(buf, fz);
     free(buf);
@@ -164,7 +168,12 @@ int main(int argc, char **argv) {
                         t = sarr_getstr(&ep.values, 0, NULL);
                     } else { t = ep.values.strs; }
 
-                    f = fopen(t, "r");
+                    path = join(src, sl, t, strlen(t),
+                                (sl == 0 || src[sl - 1] == '/' ? NULL : "/"), 1,
+                                &pl);
+                    if (!path) { __e("join"); }
+                    
+                    f = fopen(path, "r");
                     if (!f) { __e("fopen"); }
                     fseek(f, 0, SEEK_END);
                     fz = ftell(f);
@@ -177,23 +186,28 @@ int main(int argc, char **argv) {
                     f = NULL;
                     buf[fz] = '\0';
 
+                    if (remove(path) != 0) { __e("remove"); }
+
                     c.template = buf;
                     c.templatelen = fz;
                     buf = NULL;
+
+                    free(path);
+                    path = NULL;
+                    free(ep.values.strs);
                 }
                 free(ep.values.offsets);
                 free(ep.key);
-                ep.values.offsets = NULL;
-                ep.values.strs = NULL;
-                ep.key = NULL;
+                eo.pairs[j].values.offsets = NULL;
+                eo.pairs[j].values.strs = NULL;
+                eo.pairs[j].key = NULL;
             }
         }
         free(eo.pairs);
-        eo.pairs = NULL;
+        el.objs[i].pairs = NULL;
     }
     free(el.objs);
     el.objs = NULL;
-    if (remove(path) != 0) { __e("remove"); }
 
     c.replaces = crpl;
     c.replaceslen = crpll;
