@@ -1,4 +1,7 @@
 sitename: FOO.ORG
+sitename: FOO.ORG
 mdhandler: n1md
 template: template.html
 copycmd: copycmd.sh
+ignore: test/ignore.md
+unknown

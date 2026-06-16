@@ -99,10 +99,14 @@ int main(int argc, char **argv) {
         for (j = 0; j < eo.count; j++) {
             ep = eo.pairs[j];
             if (ep.values.count == 0) {
-                _f("found key without value");
+                _f("found key without value\n");
             } else {
                 #define pcmp(x) strcmp(ep.key, x) == 0
                 if (pcmp("sitename")) {
+                    if (c.sitename) {
+                        free(c.sitename);
+                        c.sitename = NULL;
+                    }
                     if (ep.values.count > 1) {
                         _f("sitename requires only one value, first will be taken\n");
                         t = sarr_getstr(&ep.values, 0, &tl);
@@ -113,6 +117,10 @@ int main(int argc, char **argv) {
                         c.sitename = ep.values.strs;
                     }
                 } else if (pcmp("mdhandler")) {
+                    if (c.mdhandler) {
+                        free(c.mdhandler);
+                        c.mdhandler = NULL;
+                    }
                     if (ep.values.count > 1) {
                         _f("mdhandler requires only one value, first will be taken\n");
                         t = sarr_getstr(&ep.values, 0, &tl);
@@ -124,6 +132,10 @@ int main(int argc, char **argv) {
                         c.mdhandlerlen = ep.values.size;
                     }
                 } else if (pcmp("old")) {
+                    if (crp.old) {
+                        free(crp.old);
+                        crp.old = NULL;
+                    }
                     if (ep.values.count > 1) {
                         _f("old requires only one value, first will be taken\n");
                         t = sarr_getstr(&ep.values, 0, &tl);
@@ -146,6 +158,10 @@ int main(int argc, char **argv) {
                         crp.old = NULL;
                     }
                 } else if (pcmp("new")) {
+                    if (crp.new) {
+                        free(crp.new);
+                        crp.new = NULL;
+                    }
                     if (ep.values.count > 1) {
                         _f("new requires only one value, first will be taken\n");
                         t = sarr_getstr(&ep.values, 0, &tl);
@@ -167,6 +183,10 @@ int main(int argc, char **argv) {
                         crp.old = NULL;
                     }
                 } else if (pcmp("ignore")) {
+                    if (c.ignore) {
+                        free(c.ignore);
+                        c.ignore = NULL;
+                    }
                     c.ignore = malloc(sizeof(char*) * (ep.values.count + 1));
                     if (!c.ignore) { __e("malloc"); }
                     for (k = 0; k < ep.values.count; k++) {
@@ -176,7 +196,12 @@ int main(int argc, char **argv) {
                         if (!c.ignore[k]) { __e("estrndupl"); }
                     }
                     c.ignore[k] = NULL;
+                    free(ep.values.strs);
                 } else if (pcmp("template")) {
+                    if (c.template) {
+                        free(c.template);
+                        c.template = NULL;
+                    }
                     if (ep.values.count > 1) {
                         _f("template requires only one value, first will be taken\n");
                         t = sarr_getstr(&ep.values, 0, NULL);
@@ -209,6 +234,10 @@ int main(int argc, char **argv) {
 
                     free(ep.values.strs);
                 } else if (pcmp("copycmd")) {
+                    if (copycmd) {
+                        free(copycmd);
+                        copycmd = NULL;
+                    }
                     if (ep.values.count > 1) {
                         _f("copycmd requires only one value, first will be taken\n");
                         t = sarr_getstr(&ep.values, 0, &tl);
@@ -220,12 +249,12 @@ int main(int argc, char **argv) {
                         copycmdlen = ep.values.size;
                     }
                 }
-                free(ep.values.offsets);
-                free(ep.key);
-                eo.pairs[j].values.offsets = NULL;
-                eo.pairs[j].values.strs = NULL;
-                eo.pairs[j].key = NULL;
-            } 
+            }
+            free(ep.values.offsets);
+            free(ep.key);
+            eo.pairs[j].values.offsets = NULL;
+            eo.pairs[j].values.strs = NULL;
+            eo.pairs[j].key = NULL;
         }
         free(eo.pairs);
         el.objs[i].pairs = NULL;
