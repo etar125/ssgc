@@ -22,6 +22,13 @@ THE SOFTWARE IS PROVIDED “AS IS” AND THE AUTHOR DISCLAIMS ALL WARRANTIES WIT
 #define __f(x) fprintf(stderr, _P" "x); goto error
 #define _f(x) fprintf(stderr, _P" "x)
 
+/*#define system(x) mysys(x)
+
+int mysys(char *s) {
+    puts(s);
+    return 0;
+}*/
+
 int usage(char *progname) {
     printf("ssgc v"VERSION"\n"
            "Usage: %s /path/to/src [/path/to/dst]\n",
@@ -266,20 +273,70 @@ int main(int argc, char **argv) {
     c.replaceslen = crpll;
 
     if (dst) {
-        if (!copycmd) { __f("copying dir not implemented yet\nplease, add copycmd entry\n"); }
-        path = join(copycmd, copycmdlen, src, sl, " ", 1, &pl);
-        if (!path) { __f("join\n"); }
-        t = NULL;
-        t = join(path, pl, dst, dl, " ", 1, NULL);
-        if (!t) { __f("join\n"); }
+        if (!copycmd) {
+            path = join("rm -rfv ", 8, dst, dl, NULL, 0, &pl);
+            if (!path) { __f("join\n"); }
+            if (system(path) != 0) { __f("remove destination failed\n"); }
+            free(path);
+            path = NULL;
+
+            /* buf is / for dst */
+            buf = dl == 0 || dst[dl - 1] == '/' ? NULL : "/";
+
+            path = join("cp -rfv ", 8, src, sl, NULL, 0, &pl);
+            if (!path) { __f("join\n"); }
+            t = NULL;
+            t = join(path, pl, dst, dl, " ", 1, NULL);
+            if (!t) { __f("join\n"); }
         
-        if (system(t) != 0) { __f("copy command failed\n"); }
-        free(t);
-        t = NULL;
+            if (system(t) != 0) { __f("copy source to destination failed\n"); }
+            free(t);
+            free(path);
+            t = NULL;
+            path = NULL;
+
+            path = join("rm -fv ", 7, dst, dl, NULL, 0, &pl);
+            if (!path) { __f("join\n"); }
+            t = join(path, pl, "ssgc.elist ", 11, buf, 1, &tl);
+            if (!t) { __f("join\n"); }
+            free(path);
+            path = NULL;
+            path = join(t, tl, dst, dl, NULL, 0, &pl);
+            if (!path) { __f("join\n"); }
+            free(t);
+            t = NULL;
+            t = join(path, pl, "template.html ", 14, buf, 1, &tl);
+            if (!t) { __f("join\n"); }
+            free(path);
+            path = NULL;
+            path = join(t, tl, dst, dl, NULL, 0, &pl);
+            if (!path) { __f("join\n"); }
+            free(t);
+            t = NULL;
+            t = join(path, pl, "ssgc.lock", 9, buf, 1, &tl);
+            if (!t) { __f("join\n"); }
+            free(path);
+            path = NULL;
+
+            if (system(t) != 0) { __f("remove ssgc.elist, template.html, ssgc.lock failed\n"); }
+            free(t);
+            t = NULL;
+            buf = NULL;
+        } else {
+            path = join(copycmd, copycmdlen, src, sl, " ", 1, &pl);
+            if (!path) { __f("join\n"); }
+            t = NULL;
+            t = join(path, pl, dst, dl, " ", 1, NULL);
+            if (!t) { __f("join\n"); }
+        
+            if (system(t) != 0) { __f("copy command failed\n"); }
+            free(t);
+            t = NULL;
+        }
 
         src = dst;
     } else {
-        if (copycmd) { _f("copy command present but no destination, ignoring\n"); }
+        if (copycmd) { _f("copy command present but no destination, ignoring it\n"); }
         if (remove(cpath) != 0) { __e("remove"); }
         if (remove(tpath) != 0) { __e("remove"); }
     }
