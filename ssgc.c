@@ -180,6 +180,32 @@ static int convert(ssg_cfg *cfg, const char *dir, size_t l) {
 
     if (!dir) { return 1; }
 
+    path = join(dir, l, ".preconvert", 11, dir[l - 1] == '/' ? NULL : "/", 1, NULL);
+    if (!path) { __f("join"); }
+    if (access(path, X_OK) != 0) {
+        fprintf(stderr, _P" .preconvert in %s is not executable\n", dir);
+    } else if (system(path) != 0) {
+        fprintf(stderr, _P" .preconvert in %s failed\n", dir);
+        goto error;
+    }
+    free(path);
+    path = NULL;
+
+    path = join(dir, l, ".convert", 8, dir[l - 1] == '/' ? NULL : "/", 1, NULL);
+    if (!path) { __f("join"); }
+    if (access(path, X_OK) != 0) {
+        fprintf(stderr, _P" .convert in %s is not executable\n", dir);
+    } else if (system(path) != 0) {
+        fprintf(stderr, _P" .convert in %s failed\n", dir);
+        goto error;
+    } else {
+        free(path);
+        path = NULL;
+        goto skip;
+    }
+    free(path);
+    path = NULL;
+
     d = opendir(dir);
     if (!d) { __e("opendir"); }
 
@@ -240,6 +266,18 @@ static int convert(ssg_cfg *cfg, const char *dir, size_t l) {
         path = NULL;
     }
 
+skip:
+    path = join(dir, l, ".postconvert", 12, dir[l - 1] == '/' ? NULL : "/", 1, NULL);
+    if (!path) { __f("join"); }
+    if (access(path, X_OK) != 0) {
+        fprintf(stderr, _P" .postconvert in %s is not executable\n", dir);
+    } else if (system(path) != 0) {
+        fprintf(stderr, _P" .postconvert in %s failed\n", dir);
+        goto error;
+    }
+    free(path);
+    path = NULL;
+    
     ret = 0;
 error:
     if (d) { closedir(d); }
@@ -248,6 +286,7 @@ error:
     if (st2) { free(st2); }
     if (cpath) { free(cpath); }
     if (cf) { free(cf); }
+    if (path) { free(path); }
 
     return ret;
 }
@@ -255,7 +294,7 @@ error:
 static int process(ssg_cfg *cfg, const char *dir, size_t l) {
 #undef _P
 #define _P "(process)"
-    int ret = 0;
+    int ret = 1;
     DIR *d = NULL;
     struct dirent *e = NULL;
     struct stat st;
@@ -264,6 +303,32 @@ static int process(ssg_cfg *cfg, const char *dir, size_t l) {
     FILE *f = NULL;
 
     if (!dir) { return 1; }
+
+    path = join(dir, l, ".preprocess", 11, dir[l - 1] == '/' ? NULL : "/", 1, NULL);
+    if (!path) { __f("join"); }
+    if (access(path, X_OK) != 0) {
+        fprintf(stderr, _P" .preprocess in %s is not executable\n", dir);
+    } else if (system(path) != 0) {
+        fprintf(stderr, _P" .preprocess in %s failed\n", dir);
+        goto error;
+    }
+    free(path);
+    path = NULL;
+
+    path = join(dir, l, ".process", 8, dir[l - 1] == '/' ? NULL : "/", 1, NULL);
+    if (!path) { __f("join"); }
+    if (access(path, X_OK) != 0) {
+        fprintf(stderr, _P" .process in %s is not executable\n", dir);
+    } else if (system(path) != 0) {
+        fprintf(stderr, _P" .process in %s failed\n", dir);
+        goto error;
+    } else {
+        free(path);
+        path = NULL;
+        goto skip;
+    }
+    free(path);
+    path = NULL;
     
     d = opendir(dir);
     if (!d) { __e("opendir"); }
@@ -316,7 +381,19 @@ static int process(ssg_cfg *cfg, const char *dir, size_t l) {
         free(path);
         path = NULL;
     }
+skip:
+    path = join(dir, l, ".postprocess", 12, dir[l - 1] == '/' ? NULL : "/", 1, NULL);
+    if (!path) { __f("join"); }
+    if (access(path, X_OK) != 0) {
+        fprintf(stderr, _P" .postprocess in %s is not executable\n", dir);
+    } else if (system(path) != 0) {
+        fprintf(stderr, _P" .postprocess in %s failed\n", dir);
+        goto error;
+    }
+    free(path);
+    path = NULL;
 
+    ret = 0;
 error:
     if (d) { closedir(d); }
     if (f) { fclose(f); }
@@ -325,11 +402,6 @@ error:
     if (fc) { free(fc); }
 
     return ret;
-}
-
-static int postprocess(ssg_cfg *cfg, const char *dir, size_t l) {
-    printf("postprocess %s %lu\n", dir, l);
-    return 0;
 }
 
 int ssg_main(ssg_cfg *cfg, const char *dir) {
@@ -419,7 +491,6 @@ int ssg_main(ssg_cfg *cfg, const char *dir) {
 
         if (convert(cfg, cur, cl)) { __f("convert failed\n"); }
         if (process(cfg, cur, cl)) { __f("process failed\n"); }
-        if (postprocess(cfg, cur, cl)) { __f("postprocess failed\n"); }
     }
 
     ret = 0;
