@@ -23,6 +23,8 @@ typedef struct ssg_cfg {
     size_t mdhandlerlen;
     ssg_rp *replaces;
     size_t replaceslen;
+    ssg_rp *aliases;
+    size_t aliaseslen;
     char *template;
     size_t templatelen;
     char **ignore;

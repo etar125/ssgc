@@ -51,6 +51,7 @@ static ssg_rp breplaces[] = {
     { "{{sitename}}", NULL, 12 },
     { "{{dirname}}", "", 11 },
     { "{{content}}", "", 11 },
+    { "{{alias}}", "", 9 },
 };
 
 static char* execc(const char *cmd, size_t *outlen) {
@@ -236,6 +237,16 @@ static int convert(ssg_cfg *cfg, const char *dir, size_t l) {
         }
 
         if (stat(path, &st) == 0 && !S_ISDIR(st.st_mode)) {
+            breplaces[6].new = path + rootlen + 1;
+            if (cfg->aliases && cfg->aliaseslen != 0) {
+                for (i = 0; i < cfg->aliaseslen; i++) {
+                    if (strcmp(cfg->aliases[i].old, path + rootlen + 1) == 0) {
+                        breplaces[6].new = cfg->aliases[i].new;
+                        break;
+                    }
+                }
+            }
+            
             cmd = join(cfg->mdhandler, cfg->mdhandlerlen, path, pl, " ", 1, NULL);
 
             st1 = execc(cmd, &st1l);

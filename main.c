@@ -41,16 +41,19 @@ int main(int argc, char **argv) {
     char *path = NULL, *buf = NULL, *src = NULL,
         *t = NULL, *dst = NULL, *copycmd = NULL, *cpath = NULL, *tpath = NULL;
     FILE *f = NULL;
-    size_t fz, sl = 0, dl = 0, pl, i, j, k, tl, crpll = 0, crpli = 0, copycmdlen = 0;
+    size_t fz, sl = 0, dl = 0, pl, i, j, k, tl, crpll = 0, crpli = 0, copycmdlen = 0,
+           acrpll = 0, acrpli = 0;
     elist el;
     elist_obj eo;
     elist_pair ep;
     int ret = 1;
-    ssg_rp crp, *crpl = NULL, *ncrpl = NULL;
+    ssg_rp crp, *crpl = NULL, *ncrpl = NULL,
+           acrp, *acrpl = NULL, *ancrpl = NULL;
 
     c.sitename = NULL;
     c.mdhandler = NULL;
     c.replaces = NULL;
+    c.aliases = NULL;
     c.template = NULL;
     c.ignore = NULL;
     crp.new = NULL;
@@ -138,7 +141,7 @@ int main(int argc, char **argv) {
                         c.mdhandler = ep.values.strs;
                         c.mdhandlerlen = ep.values.size;
                     }
-                } else if (pcmp("old")) {
+                } else if (pcmp("oldr")) {
                     if (crp.old) {
                         free(crp.old);
                         crp.old = NULL;
@@ -164,7 +167,7 @@ int main(int argc, char **argv) {
                         crp.new = NULL;
                         crp.old = NULL;
                     }
-                } else if (pcmp("new")) {
+                } else if (pcmp("newr")) {
                     if (crp.new) {
                         free(crp.new);
                         crp.new = NULL;
@@ -188,6 +191,57 @@ int main(int argc, char **argv) {
                         crpl[crpli++] = crp;
                         crp.new = NULL;
                         crp.old = NULL;
+                    }
+                } else if (pcmp("olda")) {
+                    if (acrp.old) {
+                        free(acrp.old);
+                        acrp.old = NULL;
+                    }
+                    if (ep.values.count > 1) {
+                        _f("old requires only one value, first will be taken\n");
+                        t = sarr_getstr(&ep.values, 0, &tl);
+                        acrp.old = estrndupl(t, tl, &acrp.oldlen);
+                        if (!acrp.old) { __e("estrndupl"); }
+                        free(ep.values.strs);
+                    } else {
+                        acrp.old = ep.values.strs;
+                        acrp.oldlen = ep.values.size;
+                    }
+                    if (acrp.new) {
+                        if (acrpli == acrpll) {
+                            acrpll += 1;
+                            ancrpl = realloc(acrpl, sizeof(ssg_rp) * acrpll);
+                            if (!ancrpl) { __e("realloc"); }
+                            acrpl = ancrpl;
+                        }
+                        acrpl[acrpli++] = acrp;
+                        acrp.new = NULL;
+                        acrp.old = NULL;
+                    }
+                } else if (pcmp("newa")) {
+                    if (acrp.new) {
+                        free(acrp.new);
+                        acrp.new = NULL;
+                    }
+                    if (ep.values.count > 1) {
+                        _f("new requires only one value, first will be taken\n");
+                        t = sarr_getstr(&ep.values, 0, &tl);
+                        acrp.new = estrndupl(t, tl, NULL);
+                        if (!acrp.new) { __e("estrndupl"); }
+                        free(ep.values.strs);
+                    } else {
+                        acrp.new = ep.values.strs;
+                    }
+                    if (acrp.old) {
+                        if (acrpli == acrpll) {
+                            acrpll += 1;
+                            ancrpl = realloc(acrpl, sizeof(ssg_rp) * acrpll);
+                            if (!ancrpl) { __e("realloc"); }
+                            acrpl = ancrpl;
+                        }
+                        acrpl[acrpli++] = acrp;
+                        acrp.new = NULL;
+                        acrp.old = NULL;
                     }
                 } else if (pcmp("ignore")) {
                     if (c.ignore) {
@@ -271,6 +325,8 @@ int main(int argc, char **argv) {
 
     c.replaces = crpl;
     c.replaceslen = crpll;
+    c.aliases = acrpl;
+    c.aliaseslen = acrpll;
 
     if (dst) {
         if (!copycmd) {
@@ -381,6 +437,15 @@ error:
     }
     if (crp.new) { free(crp.new); }
     if (crp.old) { free(crp.old); }
+    if (acrpl) {
+        for (i = 0; i < acrpll; i++) {
+            if (acrpl[i].old) { free(acrpl[i].old); }
+            if (acrpl[i].new) { free(acrpl[i].new); }
+        }
+        free(acrpl);
+    }
+    if (acrp.new) { free(acrp.new); }
+    if (acrp.old) { free(acrp.old); }
     if (cpath) { free(cpath); }
     if (tpath) { free(tpath); }
 
