@@ -46,12 +46,12 @@ static size_t rootlen;
 
 static ssg_rp breplaces[] = {
     { "\\{", "{", 2 },
-    { "{{up}}", "", 6 },
+    { "{{up}}", NULL, 6 },
     { "{{home}}", "/", 8 },
     { "{{sitename}}", NULL, 12 },
-    { "{{dirname}}", "", 11 },
-    { "{{content}}", "", 11 },
-    { "{{alias}}", "", 9 },
+    { "{{dirname}}", NULL, 11 },
+    { "{{content}}", NULL, 11 },
+    { "{{alias}}", NULL, 9 },
 };
 
 static char* execc(const char *cmd, size_t *outlen) {
@@ -110,19 +110,19 @@ static char *ssub(ssg_cfg *cfg, const char *s, size_t l, size_t *outlen) {
     
     for (i = 0; i < l;) {
         affected = 0;
-        for (j = 0; j < llen(breplaces) && !affected; j++) {
-            if (strncmp(&s[i], breplaces[j].old, breplaces[j].oldlen) == 0) {
+        for (j = 0; j < llen(breplaces) && affected == 0; j++) {
+            if (strncmp(s + i, breplaces[j].old, breplaces[j].oldlen) == 0) {
                 affected = breplaces[j].oldlen;
-                if (d_append(&ds, &asize, &bsize, breplaces[j].new,
-                    strlen(breplaces[j].new)) != 0) {
+                if (breplaces[j].new && d_append(&ds, &asize, &bsize, breplaces[j].new,
+                             strlen(breplaces[j].new)) != 0) {
                     if (ds) { free(ds); }
                     return NULL;
                 }
             }
         }
         if (cfg->replaces) {
-            for (j = 0; j < cfg->replaceslen && !affected; j++) {
-                if (strncmp(&s[i], cfg->replaces[j].old, cfg->replaces[j].oldlen) == 0) {
+            for (j = 0; j < cfg->replaceslen && affected == 0; j++) {
+                if (strncmp(s + i, cfg->replaces[j].old, cfg->replaces[j].oldlen) == 0) {
                     affected = cfg->replaces[j].oldlen;
                     if (d_append(&ds, &asize, &bsize, cfg->replaces[j].new,
                                  strlen(cfg->replaces[j].new)) != 0) {
@@ -132,7 +132,7 @@ static char *ssub(ssg_cfg *cfg, const char *s, size_t l, size_t *outlen) {
                 }
             }
         }
-        if (affected) { i += affected; }
+        if (affected != 0) { i += affected; }
         else if (d_append(&ds, &asize, &bsize, &s[i++], 1) != 0) {
             if (ds) { free(ds); }
             return NULL;
@@ -237,16 +237,6 @@ static int convert(ssg_cfg *cfg, const char *dir, size_t l) {
         }
 
         if (stat(path, &st) == 0 && !S_ISDIR(st.st_mode)) {
-            breplaces[6].new = path + rootlen + 1;
-            if (cfg->aliases && cfg->aliaseslen != 0) {
-                for (i = 0; i < cfg->aliaseslen; i++) {
-                    if (strcmp(cfg->aliases[i].old, path + rootlen + 1) == 0) {
-                        breplaces[6].new = cfg->aliases[i].new;
-                        break;
-                    }
-                }
-            }
-            
             cmd = join(cfg->mdhandler, cfg->mdhandlerlen, path, pl, " ", 1, NULL);
 
             st1 = execc(cmd, &st1l);
@@ -371,6 +361,16 @@ static int process(ssg_cfg *cfg, const char *dir, size_t l) {
         if (!path) { __f("join"); }
 
         if (stat(path, &st) == 0 && !S_ISDIR(st.st_mode)) {
+            breplaces[6].new = path + rootlen + (rootlen != 0 ? (rootdir[rootlen - 1] == '/' ? 0 : 1) : 0);
+            if (cfg->aliases) {
+                for (i = 0; i < cfg->aliaseslen; i++) {
+                    if (strcmp(cfg->aliases[i].old, path + rootlen + 1) == 0) {
+                        breplaces[6].new = cfg->aliases[i].new;
+                        break;
+                    }
+                }
+            }
+            
             f = fopen(path, "r");
             if (!f) { __e("fopen"); }
             fseek(f, 0, SEEK_END);
@@ -385,6 +385,7 @@ static int process(ssg_cfg *cfg, const char *dir, size_t l) {
             breplaces[5].new = fc;
             nfc = ssub(cfg, cfg->template, cfg->templatelen, &nfz);
             breplaces[5].new = NULL;
+            breplaces[6].new = NULL;
             if (!nfc) { __f("nfc"); }
             free(fc);
             fc = NULL;

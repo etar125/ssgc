@@ -58,6 +58,8 @@ int main(int argc, char **argv) {
     c.ignore = NULL;
     crp.new = NULL;
     crp.old = NULL;
+    acrp.new = NULL;
+    acrp.old = NULL;
     el.objs = NULL;
 
     if (argc < 2 || argc > 3) { return usage(argv[0]); }
@@ -200,7 +202,7 @@ int main(int argc, char **argv) {
                     if (ep.values.count > 1) {
                         _f("old requires only one value, first will be taken\n");
                         t = sarr_getstr(&ep.values, 0, &tl);
-                        acrp.old = estrndupl(t, tl, &acrp.oldlen);
+                        acrp.old = estrndupl(t, tl, NULL);
                         if (!acrp.old) { __e("estrndupl"); }
                         free(ep.values.strs);
                     } else {

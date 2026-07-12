@@ -3,4 +3,12 @@ sitename: FOO.ORG
 mdhandler: n1md
 template: template.html
 ignore: test/ignore.md
+olda: index.html
+newa: home
+olda: test/1.html
+newa: test 1
+olda: test/2.html
+newa: test 2
+olda: test/index.html
+newa: test pages
 unknown
