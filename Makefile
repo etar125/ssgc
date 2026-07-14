@@ -12,7 +12,7 @@ all: ssgc
 	$(CC) $(ECFLAGS) -c $< -o $@
 
 ssgc: $(OBJ)
-	$(CC) $(ECFLAGS) $^ -o $@
+	$(CC) $(ELDFLAGS) $^ -o $@
 
 clean:
 	rm -rf ssgc $(OBJ)
