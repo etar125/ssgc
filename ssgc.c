@@ -181,7 +181,7 @@ static int convert(ssg_cfg *cfg, const char *dir, size_t l) {
 
     if (!dir) { return 1; }
 
-    path = join(dir, l, ".preconvert", 11, dir[l - 1] == '/' ? NULL : "/", 1, NULL);
+    path = join(dir, l, ".preconvert", 11, dir[l - 1] == '/' ? NULL : "/", 1, &pl);
     if (!path) { __f("join"); }
     cpath = join(path, pl, dir, dir[l - 1] == '/' ? l - 1 : l, " ", 1, NULL);
     if (!cpath) { __f("join"); }
@@ -199,7 +199,7 @@ static int convert(ssg_cfg *cfg, const char *dir, size_t l) {
     free(path);
     path = NULL;
 
-    path = join(dir, l, ".convert", 8, dir[l - 1] == '/' ? NULL : "/", 1, NULL);
+    path = join(dir, l, ".convert", 8, dir[l - 1] == '/' ? NULL : "/", 1, &pl);
     if (!path) { __f("join"); }
     cpath = join(path, pl, dir, dir[l - 1] == '/' ? l - 1 : l, " ", 1, NULL);
     if (!cpath) { __f("join"); }
@@ -282,7 +282,7 @@ static int convert(ssg_cfg *cfg, const char *dir, size_t l) {
     }
 
 skip:
-    path = join(dir, l, ".postconvert", 12, dir[l - 1] == '/' ? NULL : "/", 1, NULL);
+    path = join(dir, l, ".postconvert", 12, dir[l - 1] == '/' ? NULL : "/", 1, &pl);
     if (!path) { __f("join"); }
     cpath = join(path, pl, dir, dir[l - 1] == '/' ? l - 1 : l, " ", 1, NULL);
     if (!cpath) { __f("join"); }
@@ -326,7 +326,7 @@ static int process(ssg_cfg *cfg, const char *dir, size_t l) {
 
     if (!dir) { return 1; }
 
-    path = join(dir, l, ".preprocess", 11, dir[l - 1] == '/' ? NULL : "/", 1, NULL);
+    path = join(dir, l, ".preprocess", 11, dir[l - 1] == '/' ? NULL : "/", 1, &pl);
     if (!path) { __f("join"); }
     dname = join(path, pl, dir, dir[l - 1] == '/' ? l - 1 : l, " ", 1, NULL);
     if (!dname) { __f("join"); }
@@ -344,7 +344,7 @@ static int process(ssg_cfg *cfg, const char *dir, size_t l) {
     free(path);
     path = NULL;
 
-    path = join(dir, l, ".process", 8, dir[l - 1] == '/' ? NULL : "/", 1, NULL);
+    path = join(dir, l, ".process", 8, dir[l - 1] == '/' ? NULL : "/", 1, &pl);
     if (!path) { __f("join"); }
     dname = join(path, pl, dir, dir[l - 1] == '/' ? l - 1 : l, " ", 1, NULL);
     if (!dname) { __f("join"); }
@@ -429,7 +429,7 @@ static int process(ssg_cfg *cfg, const char *dir, size_t l) {
         path = NULL;
     }
 skip:
-    path = join(dir, l, ".postprocess", 12, dir[l - 1] == '/' ? NULL : "/", 1, NULL);
+    path = join(dir, l, ".postprocess", 12, dir[l - 1] == '/' ? NULL : "/", 1, &pl);
     if (!path) { __f("join"); }
     dname = join(path, pl, dir, dir[l - 1] == '/' ? l - 1 : l, " ", 1, NULL);
     if (!dname) { __f("join"); }
@@ -516,22 +516,20 @@ int ssg_main(ssg_cfg *cfg, const char *dir) {
             path = join(cur, cl, e->d_name, dl, cur[cl - 1] == '/' ? NULL : "/", 1, &pl);
             if (!path) { __e("join"); }
             if (stat(path, &st) == 0 && S_ISDIR(st.st_mode)) {
-                if (cd == 0) { free(path); __f("impossible error\n"); /* ??? */ }
                 if (cd == asz) {
                     asz += asz / 2;
                     nsdl = realloc(sdl, sizeof(sdir) * asz);
                     if (!nsdl) { free(path); __e("realloc"); }
                     sdl = nsdl;
                 }
-                od = cd - 1;
                 sdl[cd].name = path;
                 sdl[cd].namelen = pl;
-                sdl[cd].vname = join(sdl[od].vname, sdl[od].vnamelen,
+                sdl[cd].vname = join(sdl[i].vname, sdl[i].vnamelen,
                                   e->d_name, dl,
-                                  sdl[od].vname[sdl[od].vnamelen - 1] == '/' ? NULL : "/", 1,
+                                  sdl[i].vname[sdl[i].vnamelen - 1] == '/' ? NULL : "/", 1,
                                   &sdl[cd].vnamelen);
-                sdl[cd].parent = sdl[od].vname;
-                sdl[cd].parentlen = sdl[od].vnamelen;
+                sdl[cd].parent = sdl[i].vname;
+                sdl[cd].parentlen = sdl[i].vnamelen;
                 if (!sdl[cd].vname) { __e("join"); }
                 cd += 1;
             } else { free(path); path = NULL; }
