@@ -1,2 +1,4 @@
 - Add support for other formats than Markdown.
 - Write index generator ("Index of ...").
+- Delete scripts after execute
+- Add more built-in replaces (version, mdhandler...)
