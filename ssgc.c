@@ -185,31 +185,27 @@ static int convert(ssg_cfg *cfg, const char *dir, size_t l) {
     if (!path) { __f("join"); }
     cpath = join(path, pl, dir, dir[l - 1] == '/' ? l - 1 : l, " ", 1, NULL);
     if (!cpath) { __f("join"); }
-    free(path);
-    path = cpath;
-    cpath = NULL;
     if (access(path, F_OK) == 0) {
         if (access(path, X_OK) != 0) {
             fprintf(stderr, _P" .preconvert in %s is not executable\n", dir);
-        } else if (system(path) != 0) {
+        } else if (system(cpath) != 0) {
             fprintf(stderr, _P" .preconvert in %s failed\n", dir);
             goto error;
         }
     }
     free(path);
+    free(cpath);
     path = NULL;
+    cpath = NULL;
 
     path = join(dir, l, ".convert", 8, dir[l - 1] == '/' ? NULL : "/", 1, &pl);
     if (!path) { __f("join"); }
     cpath = join(path, pl, dir, dir[l - 1] == '/' ? l - 1 : l, " ", 1, NULL);
     if (!cpath) { __f("join"); }
-    free(path);
-    path = cpath;
-    cpath = NULL;
     if (access(path, F_OK) == 0) {
         if (access(path, X_OK) != 0) {
             fprintf(stderr, _P" .convert in %s is not executable\n", dir);
-        } else if (system(path) != 0) {
+        } else if (system(cpath) != 0) {
             fprintf(stderr, _P" .convert in %s failed\n", dir);
             goto error;
         } else {
@@ -219,7 +215,9 @@ static int convert(ssg_cfg *cfg, const char *dir, size_t l) {
         }
     }
     free(path);
+    free(cpath);
     path = NULL;
+    cpath = NULL;
 
     d = opendir(dir);
     if (!d) { __e("opendir"); }
@@ -286,19 +284,18 @@ skip:
     if (!path) { __f("join"); }
     cpath = join(path, pl, dir, dir[l - 1] == '/' ? l - 1 : l, " ", 1, NULL);
     if (!cpath) { __f("join"); }
-    free(path);
-    path = cpath;
-    cpath = NULL;
     if (access(path, F_OK) == 0) {
         if (access(path, X_OK) != 0) {
             fprintf(stderr, _P" .postconvert in %s is not executable\n", dir);
-        } else if (system(path) != 0) {
+        } else if (system(cpath) != 0) {
             fprintf(stderr, _P" .postconvert in %s failed\n", dir);
             goto error;
         }
     }
     free(path);
+    free(cpath);
     path = NULL;
+    cpath = NULL;
     
     ret = 0;
 error:
@@ -330,31 +327,27 @@ static int process(ssg_cfg *cfg, const char *dir, size_t l) {
     if (!path) { __f("join"); }
     dname = join(path, pl, dir, dir[l - 1] == '/' ? l - 1 : l, " ", 1, NULL);
     if (!dname) { __f("join"); }
-    free(path);
-    path = dname;
-    dname = NULL;
     if (access(path, F_OK) == 0) {
         if (access(path, X_OK) != 0) {
             fprintf(stderr, _P" .preprocess in %s is not executable\n", dir);
-        } else if (system(path) != 0) {
+        } else if (system(dname) != 0) {
             fprintf(stderr, _P" .preprocess in %s failed\n", dir);
             goto error;
         }
     }
     free(path);
+    free(dname);
     path = NULL;
+    dname = NULL;
 
     path = join(dir, l, ".process", 8, dir[l - 1] == '/' ? NULL : "/", 1, &pl);
     if (!path) { __f("join"); }
     dname = join(path, pl, dir, dir[l - 1] == '/' ? l - 1 : l, " ", 1, NULL);
     if (!dname) { __f("join"); }
-    free(path);
-    path = dname;
-    dname = NULL;
     if (access(path, F_OK) == 0) {
         if (access(path, X_OK) != 0) {
             fprintf(stderr, _P" .process in %s is not executable\n", dir);
-        } else if (system(path) != 0) {
+        } else if (system(dname) != 0) {
             fprintf(stderr, _P" .process in %s failed\n", dir);
             goto error;
         } else {
@@ -364,7 +357,9 @@ static int process(ssg_cfg *cfg, const char *dir, size_t l) {
         }
     }
     free(path);
+    free(dname);
     path = NULL;
+    dname = NULL;
     
     d = opendir(dir);
     if (!d) { __e("opendir"); }
@@ -433,19 +428,18 @@ skip:
     if (!path) { __f("join"); }
     dname = join(path, pl, dir, dir[l - 1] == '/' ? l - 1 : l, " ", 1, NULL);
     if (!dname) { __f("join"); }
-    free(path);
-    path = dname;
-    dname = NULL;
     if (access(path, F_OK) == 0) {
         if (access(path, X_OK) != 0) {
             fprintf(stderr, _P" .postprocess in %s is not executable\n", dir);
-        } else if (system(path) != 0) {
+        } else if (system(dname) != 0) {
             fprintf(stderr, _P" .postprocess in %s failed\n", dir);
             goto error;
         }
     }
     free(path);
+    free(dname);
     path = NULL;
+    dname = NULL;
 
     ret = 0;
 error:
