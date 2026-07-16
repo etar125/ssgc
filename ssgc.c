@@ -192,6 +192,7 @@ static int convert(ssg_cfg *cfg, const char *dir, size_t l) {
             fprintf(stderr, _P" .preconvert in %s failed\n", dir);
             goto error;
         }
+        if (remove(path) != 0) { __e("remove"); }
     }
     free(path);
     free(cpath);
@@ -213,6 +214,7 @@ static int convert(ssg_cfg *cfg, const char *dir, size_t l) {
             path = NULL;
             goto skip;
         }
+        if (remove(path) != 0) { __e("remove"); }
     }
     free(path);
     free(cpath);
@@ -291,6 +293,7 @@ skip:
             fprintf(stderr, _P" .postconvert in %s failed\n", dir);
             goto error;
         }
+        if (remove(path) != 0) { __e("remove"); }
     }
     free(path);
     free(cpath);
@@ -334,6 +337,7 @@ static int process(ssg_cfg *cfg, const char *dir, size_t l) {
             fprintf(stderr, _P" .preprocess in %s failed\n", dir);
             goto error;
         }
+        if (remove(path) != 0) { __e("remove"); }
     }
     free(path);
     free(dname);
@@ -355,6 +359,7 @@ static int process(ssg_cfg *cfg, const char *dir, size_t l) {
             path = NULL;
             goto skip;
         }
+        if (remove(path) != 0) { __e("remove"); }
     }
     free(path);
     free(dname);
@@ -435,6 +440,7 @@ skip:
             fprintf(stderr, _P" .postprocess in %s failed\n", dir);
             goto error;
         }
+        if (remove(path) != 0) { __e("remove"); }
     }
     free(path);
     free(dname);
@@ -463,7 +469,7 @@ int ssg_main(ssg_cfg *cfg, const char *dir) {
     size_t i = 0, cl = 0, dl = 0, pl = 0, dirlen = 0;
 
     sdir *sdl = NULL, *nsdl = NULL;
-    size_t cd = 0, asz = 8, od = 0;
+    size_t cd = 0, asz = 8;
 
     if (!cfg) { __f("config is null\n"); }
     if (!cfg->sitename) { __f("sitename not set\n"); }
