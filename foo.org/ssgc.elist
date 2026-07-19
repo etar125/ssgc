@@ -11,4 +11,6 @@ olda: test/2.html
 newa: test 2
 olda: test/index.html
 newa: test pages
+oldr: {{test}}
+newr: Test
 unknown

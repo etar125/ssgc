@@ -174,9 +174,8 @@ static int convert(ssg_cfg *cfg, const char *dir, size_t l) {
     struct dirent *e = NULL;
     struct stat st;
     char *path = NULL, *dname, *cpath = NULL,
-         *nwext = ".html", *st1 = NULL, *st2 = NULL,
-         *cmd = NULL;
-    size_t pl = 0, dl = 0, i, ext = 0, st1l, st2l;
+         *nwext = ".html", *st1 = NULL, *cmd = NULL;
+    size_t pl = 0, dl = 0, i, ext = 0, st1l;
     FILE *cf = NULL;
 
     if (!dir) { return 1; }
@@ -253,11 +252,7 @@ static int convert(ssg_cfg *cfg, const char *dir, size_t l) {
             st1 = execc(cmd, &st1l);
             if (!st1) { __f("execc"); }
             if (remove(path) != 0) { __e("remove"); }
-            st2 = ssub(cfg, st1, st1l, &st2l);
-            if (!st2) { __f("ssub"); }
-            free(st1);
             free(cmd);
-            st1 = NULL;
             cmd = NULL;
 
             cpath = malloc(ext + 6);
@@ -268,11 +263,11 @@ static int convert(ssg_cfg *cfg, const char *dir, size_t l) {
             
             cf = fopen(cpath, "w");
             if (!cf) { __e("fopen"); }
-            fwrite(st2, 1, st2l, cf);
+            fwrite(st1, 1, st1l, cf);
             fclose(cf);
             cf = NULL;
-            free(st2);
-            st2 = NULL;
+            free(st1);
+            st1 = NULL;
 
             free(cpath);
             cpath = NULL;
@@ -306,7 +301,6 @@ error:
     if (d) { closedir(d); }
     if (cmd) { free(cmd); }
     if (st1) { free(st1); }
-    if (st2) { free(st2); }
     if (cpath) { free(cpath); }
     if (cf) { free(cf); }
     if (path) { free(path); }
@@ -408,12 +402,18 @@ static int process(ssg_cfg *cfg, const char *dir, size_t l) {
             fread(fc, 1, fz, f);
             fc[fz] = '\0';
             fclose(f);
-            
+
+            nfc = ssub(cfg, fc, fz, &nfz);
+            if (!nfc) { __f("ssub"); }
+            free(fc);
+            fc = nfc;
+            fz = nfz;
+            nfc = NULL;
             breplaces[5].new = fc;
             nfc = ssub(cfg, cfg->template, cfg->templatelen, &nfz);
             breplaces[5].new = NULL;
             breplaces[6].new = NULL;
-            if (!nfc) { __f("nfc"); }
+            if (!nfc) { __f("ssub"); }
             free(fc);
             fc = NULL;
             f = NULL;
