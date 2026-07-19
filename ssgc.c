@@ -210,6 +210,7 @@ static int convert(ssg_cfg *cfg, const char *dir, size_t l) {
             fprintf(stderr, _P" .convert in %s failed\n", dir);
             goto error;
         } else {
+            if (remove(path) != 0) { __e("remove"); }
             free(path);
             path = NULL;
             goto skip;
@@ -355,6 +356,7 @@ static int process(ssg_cfg *cfg, const char *dir, size_t l) {
             fprintf(stderr, _P" .process in %s failed\n", dir);
             goto error;
         } else {
+            if (remove(path) != 0) { __e("remove"); }
             free(path);
             path = NULL;
             goto skip;
