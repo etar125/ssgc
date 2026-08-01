@@ -18,7 +18,7 @@ clean:
 	rm -rf ssgc $(OBJ)
 
 cleanobj:
-	rm -rf (OBJ)
+	rm -rf $(OBJ)
 
 install: ssgc
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
