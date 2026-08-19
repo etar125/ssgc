@@ -1,0 +1,4 @@
+C Site Generator
+================
+ssgc -- static site generator written in C.
+Requires e1l >= 0.6.0 and elist >= 0.4.0.
