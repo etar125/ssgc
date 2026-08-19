@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
                     }
                     if (ep.values.count > 1) {
                         _f("sitename requires only one value, first will be taken\n");
-                        t = sarr_getstr(&ep.values, 0, &tl);
+                        t = zarr_getstr(&ep.values, 0, &tl);
                         c.sitename = estrndupl(t, tl, NULL);
                         if (!c.sitename) { __e("estrndupl"); }
                         free(ep.values.strs);
@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
                     }
                     if (ep.values.count > 1) {
                         _f("mdhandler requires only one value, first will be taken\n");
-                        t = sarr_getstr(&ep.values, 0, &tl);
+                        t = zarr_getstr(&ep.values, 0, &tl);
                         c.mdhandler = estrndupl(t, tl, &c.mdhandlerlen);
                         if (!c.mdhandler) { __e("estrndupl"); }
                         free(ep.values.strs);
@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
                     }
                     if (ep.values.count > 1) {
                         _f("old requires only one value, first will be taken\n");
-                        t = sarr_getstr(&ep.values, 0, &tl);
+                        t = zarr_getstr(&ep.values, 0, &tl);
                         crp.old = estrndupl(t, tl, &crp.oldlen);
                         if (!crp.old) { __e("estrndupl"); }
                         free(ep.values.strs);
@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
                     }
                     if (ep.values.count > 1) {
                         _f("new requires only one value, first will be taken\n");
-                        t = sarr_getstr(&ep.values, 0, &tl);
+                        t = zarr_getstr(&ep.values, 0, &tl);
                         crp.new = estrndupl(t, tl, NULL);
                         if (!crp.new) { __e("estrndupl"); }
                         free(ep.values.strs);
@@ -201,7 +201,7 @@ int main(int argc, char **argv) {
                     }
                     if (ep.values.count > 1) {
                         _f("old requires only one value, first will be taken\n");
-                        t = sarr_getstr(&ep.values, 0, &tl);
+                        t = zarr_getstr(&ep.values, 0, &tl);
                         acrp.old = estrndupl(t, tl, NULL);
                         if (!acrp.old) { __e("estrndupl"); }
                         free(ep.values.strs);
@@ -227,7 +227,7 @@ int main(int argc, char **argv) {
                     }
                     if (ep.values.count > 1) {
                         _f("new requires only one value, first will be taken\n");
-                        t = sarr_getstr(&ep.values, 0, &tl);
+                        t = zarr_getstr(&ep.values, 0, &tl);
                         acrp.new = estrndupl(t, tl, NULL);
                         if (!acrp.new) { __e("estrndupl"); }
                         free(ep.values.strs);
@@ -254,7 +254,7 @@ int main(int argc, char **argv) {
                     if (!c.ignore) { __e("malloc"); }
                     for (k = 0; k < ep.values.count; k++) {
                         c.ignore[k] = NULL;
-                        t = sarr_getstr(&ep.values, k, &tl);
+                        t = zarr_getstr(&ep.values, k, &tl);
                         c.ignore[k] = estrndupl(t, tl, NULL);
                         if (!c.ignore[k]) { __e("estrndupl"); }
                     }
@@ -267,7 +267,7 @@ int main(int argc, char **argv) {
                     }
                     if (ep.values.count > 1) {
                         _f("template requires only one value, first will be taken\n");
-                        t = sarr_getstr(&ep.values, 0, NULL);
+                        t = zarr_getstr(&ep.values, 0, NULL);
                     } else { t = ep.values.strs; }
 
                     path = join(src, sl, t, strlen(t),
@@ -303,7 +303,7 @@ int main(int argc, char **argv) {
                     }
                     if (ep.values.count > 1) {
                         _f("copycmd requires only one value, first will be taken\n");
-                        t = sarr_getstr(&ep.values, 0, &tl);
+                        t = zarr_getstr(&ep.values, 0, &tl);
                         copycmd = estrndupl(t, tl, &copycmdlen);
                         if (!copycmd) { __e("estrndupl"); }
                         free(ep.values.strs);
